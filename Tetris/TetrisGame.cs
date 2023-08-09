@@ -33,6 +33,7 @@ namespace Tetris
         /// <returns></returns>
         private bool CanMove(int xOffset, int yOffset)
         {
+            // 如果当前没形状, 返回 false
             if (CurrentShape == null)
                 return false;
 
@@ -43,10 +44,12 @@ namespace Tetris
                 coord.X += xOffset;
                 coord.Y += yOffset;
 
+                // 如果移动后方块坐标超出界限, 不能移动
                 if (coord.X < 0 || coord.X >= Width ||
                     coord.Y < 0 || coord.Y >= Height)
                     return false;
 
+                // 如果移动后方块会与地图现有方块重合, 则不能移动
                 if (map[coord.X, coord.Y])
                     return false;
             }
@@ -60,17 +63,21 @@ namespace Tetris
         /// <returns></returns>
         private bool CanChangeShape()
         {
+            // 如果当前没形状, 当然不能切换样式
             if (CurrentShape == null)
                 return false;
 
+            // 获取下一个样式的所有方块
             foreach (var block in CurrentShape.GetNextStyleBlocks())
             {
                 Coordinate coord = Coordinate.GetAbstract(CurrentShape.Position, block);
 
+                // 如果超出界限, 不能切换
                 if (coord.X < 0 || coord.X >= Width ||
                     coord.Y < 0 || coord.Y >= Height)
                     return false;
 
+                // 如果与现有方块重合, 不能切换
                 if (map[coord.X, coord.Y])
                     return false;
             }
@@ -83,20 +90,26 @@ namespace Tetris
         /// </summary>
         private void StorageShapeToMap()
         {
+            // 没形状, 存寂寞
             if (CurrentShape == null)
                 return;
 
+            // 所有方块遍历一下
             foreach (var block in CurrentShape.GetBlocks())
             {
+                // 转为绝对坐标
                 Coordinate coord = Coordinate.GetAbstract(CurrentShape.Position, block);
 
+                // 超出界限则跳过
                 if (coord.X < 0 || coord.X >= Width ||
                     coord.Y < 0 || coord.Y >= Height)
                     continue;
 
+                // 存地图里
                 map[coord.X, coord.Y] = true;
             }
 
+            // 当前形状设为 null
             CurrentShape = null;
         }
 
@@ -107,7 +120,7 @@ namespace Tetris
         private void GenerateShape()
         {
             int shapeCount = 7;
-            int randint = Random.Shared.Next(shapeCount);
+            int randint = random.Next(shapeCount);
 
             Coordinate initCoord = new Coordinate(Width / 2, 0);
 
@@ -132,18 +145,24 @@ namespace Tetris
         /// </summary>
         private void Scan()
         {
-            for (int y = 0;  y < Height; y++)
+            for (int y = 0; y < Height; y++)
             {
+                // 设置当前行是整行
                 bool ok = true;
+
+                // 循环当前行的所有方块, 如果方块为 false, ok 就会被设为 false
                 for (int x = 0; x < Width; x++)
                     ok &= map[x, y];
 
+                // 如果当前行确实是整行
                 if (ok)
                 {
+                    // 所有行全部往下移动
                     for (int _y = y; _y > 0; _y--)
                         for (int x = 0; x < Width; x++)
                             map[x, _y] = map[x, _y - 1];
 
+                    // 最顶行全设为空
                     for (int x = 0; x < Width; x++)
                         map[x, 0] = false;
                 }
@@ -187,6 +206,14 @@ namespace Tetris
         public void MoveRight()
         {
             Move(1, 0);
+        }
+
+        /// <summary>
+        /// 向下移动
+        /// </summary>
+        public void MoveDown()
+        {
+            Move(0, 1);
         }
 
         /// <summary>
@@ -272,18 +299,28 @@ namespace Tetris
                 }
             }
 
+            sb.AppendLine("┌" + new string('─', Width * 2) + "┐");
             for (int y = 0; y < Height; y++)
             {
+                sb.Append("|");
+
                 for (int x = 0; x < Width; x++)
                 {
-                    sb.Append(mapCpy[x, y] ? "MM" : "  ");
+                    sb.Append(mapCpy[x, y] ? "##" : "  ");
                 }
+
+                sb.Append("|");
 
                 sb.AppendLine();
             }
 
-            Console.SetCursorPosition(0, 0);
-            Console.Write(sb.ToString());
+            sb.AppendLine("└" + new string('─', Width * 2) + "┘");
+
+            lock (this)
+            {
+                Console.SetCursorPosition(0, 0);
+                Console.Write(sb.ToString());
+            }
         }
     }
 }

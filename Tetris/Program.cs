@@ -4,7 +4,7 @@
     {
         private static void Main(string[] args)
         {
-            TetrisGame game = new TetrisGame(30, 30);
+            TetrisGame game = new TetrisGame(20, 30);
 
             Console.WriteLine("按任意键继续");
             Console.ReadKey();
@@ -53,7 +53,7 @@
                     // S 键或下箭头将方块降落到底部
                     case ConsoleKey.S:
                     case ConsoleKey.DownArrow:
-                        game.Fall();
+                        game.MoveDown();
                         break;
                 }
 
